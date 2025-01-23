@@ -38,6 +38,7 @@ const cardSchema = new Schema({
   reinductionDate: Date,
   pending: { type: Boolean, default: true },
   issuer: String,
+  notes: String,
 });
 
 cardSchema.methods.close = function () {
