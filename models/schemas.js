@@ -17,7 +17,12 @@ const cardSchema = new Schema({
   },
   workerName: {
     type: String,
-    required: [true, "Worker's name required"],
+    required: [true, "Worker's first name required"],
+    minLength: 2,
+  },
+  workerSurname: {
+    type: String,
+    required: [true, "Worker's last name required"],
     minLength: 2,
   },
   workerId: String,
@@ -34,7 +39,11 @@ const cardSchema = new Schema({
   ],
   colour: { type: String, default: "yellow" },
   daysOffSite: Number,
-  eventDate: { type: Date, default: Date.now },
+  eventDate: {
+    type: Date,
+    default: Date.now,
+    required: [true, "Event's date required"],
+  },
   reinductionDate: Date,
   pending: { type: Boolean, default: true },
   issuer: String,

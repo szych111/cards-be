@@ -9,7 +9,7 @@ router.use(checkAuth);
 
 router.get("/cards", async (req, res, next) => {
   try {
-    const cardsData = await Cards.find({}).sort("workerName asc");
+    const cardsData = await Cards.find({}).sort("workerSurame asc");
     res.json({ cards: cardsData });
   } catch (error) {
     next(error);
@@ -36,6 +36,7 @@ router.post("/", async (req, res, next) => {
       contractorPhone: data.contractorPhone,
       contractorEmail: data.contractorEmail,
       workerName: data.workerName,
+      workerSurname: data.workerSurname,
       workerId: data.workerId,
       package: data.package,
       packageNumber: data.packageNumber,
@@ -49,6 +50,7 @@ router.post("/", async (req, res, next) => {
       reinductionDate: data.reinductionDate,
       pending: data.pending,
       issuer: data.issuer,
+      notes: data.notes,
     });
     const savedCard = await newCard.save();
     res.status(201).json({
