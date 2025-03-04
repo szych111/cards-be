@@ -9,7 +9,10 @@ router.use(checkAuth);
 
 router.get("/cards", async (req, res, next) => {
   try {
-    const cardsData = await Cards.find({}).sort("workerSurame asc");
+    const cardsData = await Cards.find({}).sort({
+      eventDate: -1,
+      workerSurname: 1,
+    });
     res.json({ cards: cardsData });
   } catch (error) {
     next(error);
