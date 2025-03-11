@@ -1,45 +1,40 @@
 const express = require("express");
-const { add, get } = require("../data/user");
+const { hash } = require('bcryptjs');
 const { createJSONToken, isValidPassword } = require("../util/auth");
-const { isValidEmail, isValidText } = require("../util/validation");
+//const { isValidEmail, isValidText } = require("../util/validation");
+const { Users } = require("../models/schemas");
+const { checkAuth } = require("../util/auth");
 require("dotenv/config");
-
-const { users } = JSON.parse(process.env.USERS_JSON);
 
 const router = express.Router();
 
 router.post("/signup", async (req, res, next) => {
   const data = req.body;
-  let errors = {};
+  const hashedPw = await hash(data.password, 12);
+  //let errors = {};
 
-  if (!isValidEmail(data.email)) {
-    errors.email = "Invalid email.";
-  } else {
-    try {
-      const existingUser = await get(data.email);
-      if (existingUser) {
-        errors.email = "Email exists already.";
-      }
-    } catch (error) {}
-  }
-
-  if (!isValidText(data.password, 6)) {
-    errors.password = "Invalid password. Must be at least 6 characters long.";
-  }
-
-  if (Object.keys(errors).length > 0) {
-    return res.status(422).json({
-      message: "User signup failed due to validation errors.",
-      errors,
-    });
-  }
+  //if (!isValidEmail(data.email)) {
+  //   errors.email = "Invalid email.";
+  // } else {
+  //   try {
+  //     const existingUser = await Users.findOne({email: data.email});
+  //     if (existingUser) {
+  //       errors.email = "Email exists already.";
+  //     }
+  //   } catch (error) {}
+  // }
 
   try {
-    const createdUser = await add(data);
-    const authToken = createJSONToken(createdUser.email);
-    res
-      .status(201)
-      .json({ message: "User created.", user: createdUser, token: authToken });
+    const newUser = new Users({
+      name: data.name,
+      surname: data.surname,
+      email: data.email,
+      password: hashedPw,
+      country: data.country,
+      admin: data.admin,
+    });
+    const savedUser = await newUser.save();
+    res.status(201).json({ message: "User saved", user: savedUser });
   } catch (error) {
     next(error);
   }
@@ -47,11 +42,13 @@ router.post("/signup", async (req, res, next) => {
 
 router.post("/login", async (req, res) => {
   const email = req.body.email;
-  const password = req.body.password;
+  //const password = req.body.password;
+  //const { users } = JSON.parse(process.env.USERS_JSON);
 
   let user;
   try {
-    user = await users.find((u) => u.email === email);
+    user = await Users.findOne({email});
+    //user = await users.find((u) => u.email === email);
   } catch (error) {
     return res.status(401).json({ message: "Authentication failed." });
   }
@@ -65,7 +62,59 @@ router.post("/login", async (req, res) => {
   }
 
   const token = createJSONToken(email);
-  res.json({ token });
+  const { admin, country, project } = user;
+  res.json({ token, admin, country, project });
+});
+
+router.get("/user", async (req, res, next) => {
+  const email = req.body.email;
+
+  try {
+    const userData = await Users.findOne({email});
+    res.json({ user: userData });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/users", async (req, res, next) => {
+  try {
+    const usersData = await Users.find({});
+    res.json({ users: usersData });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.use(checkAuth);
+
+router.patch("/:id", async (req, res, next) => {
+  const data = req.body;
+
+  let errors = {};
+
+  if (Object.keys(errors).length > 0) {
+    return res.status(422).json({
+      message: "Updating the user failed due to validation errors",
+      errors,
+    });
+  }
+
+  try {
+    await Users.updateOne({ _id: req.params.id }, data);
+    res.json({ message: "User updated.", user: data });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete("/:id", async (req, res, next) => {
+  try {
+    await Users.deleteOne({ _id: req.params.id });
+    res.json({ message: "User deleted." });
+  } catch (error) {
+    next(error);
+  }
 });
 
 module.exports = router;
