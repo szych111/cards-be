@@ -127,8 +127,9 @@ const Cards = mongoose.model("Cards", cardSchema, "cards");
 const CardsDE = mongoose.model("Cards", cardSchema, "cards_de");
 const CardsFR = mongoose.model("Cards", cardSchema, "cards_fr");
 const CardsIT = mongoose.model("Cards", cardSchema, "cards_it");
+const CardsUK = mongoose.model("Cards", cardSchema, "cards_uk");
 const Users = mongoose.model("Users", userSchema, "users");
 
-const cardsModels = { Cards, CardsDE, CardsFR, CardsIT, Users };
+const cardsModels = { Cards, CardsDE, CardsFR, CardsIT, CardsUK, Users };
 
 module.exports = cardsModels;

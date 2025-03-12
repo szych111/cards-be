@@ -43,6 +43,14 @@ mongoose
 
 const port = process.env.PORT || 8080;
 
-mongoose.connection.once("open", () => {
+mongoose.connection.once("open", async () => {
+  try {
+    const db = mongoose.connection.db;
+    await db.collection("cards").rename("cards_de");
+    console.log('Collection renamed from "cards" to "cards_de"');
+  } catch (err) {
+    console.error("Error renaming collection:", err);
+  }
+
   app.listen(port);
 });
