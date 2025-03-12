@@ -19,15 +19,6 @@ const countryCardModels = {
   UK: CardsUK,
 };
 
-CardsDE.updateMany({}, { $set: { project: "CloudHQ GER1", country: "DE" } })
-  .then((res) => {
-    console.log(`${res.modifiedCount} documents updated.`);
-  })
-  .catch((err) => {
-    console.error("Error updating documents:", err);
-  });
-
-
 // GET all cards for a specific country
 router.get("/:country", fbAuthUser, async (req, res, next) => {
   const country = req.params.country;
