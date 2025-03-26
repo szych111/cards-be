@@ -23,7 +23,7 @@ router.post("/signup", async (req, res, next) => {
       active: data.active,
     });
     const savedUser = await newUser.save();
-    res.status(201).json({ message: "User saved", user: savedUser });
+    res.status(201).json({ message: "User saved with e-mail: " + data.email, user: savedUser });
   } catch (error) {
     next(error);
   }
@@ -52,7 +52,7 @@ router.post("/login", async (req, res) => {
   const token = createJSONToken(email);
   const { admin, country, project, _id } = user;
   const userData = { token, admin, country, id: _id };
-  res.json({ token, admin, country, id: _id, userData });
+  res.json({ userData });
 });
 
 router.use(checkAuth);
