@@ -26,8 +26,6 @@ const passwordValidator = function (password) {
 };
 
 const userSchema = new Schema({
-  name: { type: String, required: true },
-  surname: { type: String, required: true },
   email: {
     type: String,
     lowercase: true,
@@ -54,6 +52,7 @@ const userSchema = new Schema({
     },
   },
   admin: Boolean,
+  active: Boolean,
 });
 
 const cardSchema = new Schema({

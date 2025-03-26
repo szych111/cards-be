@@ -12,14 +12,15 @@ const router = express.Router();
 router.post("/signup", async (req, res, next) => {
   const data = req.body;
   const hashedPw = await hash(data.password, 12);
-  
+
   try {
     const newUser = new Users({
       email: data.email,
       password: hashedPw,
       country: data.country,
-      project: data.project,
+      //project: data.project,
       admin: data.admin,
+      active: data.active,
     });
     const savedUser = await newUser.save();
     res.status(201).json({ message: "User saved", user: savedUser });
