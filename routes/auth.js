@@ -1,5 +1,6 @@
 const express = require("express");
-const { hash } = require('bcryptjs');
+const { hash } = require("bcryptjs");
+const { ObjectId } = require("mongoose").Types;
 const { createJSONToken, isValidPassword } = require("../util/auth");
 //const { isValidEmail, isValidText } = require("../util/validation");
 const { Users } = require("../models/schemas");
@@ -11,26 +12,13 @@ const router = express.Router();
 router.post("/signup", async (req, res, next) => {
   const data = req.body;
   const hashedPw = await hash(data.password, 12);
-  //let errors = {};
-
-  //if (!isValidEmail(data.email)) {
-  //   errors.email = "Invalid email.";
-  // } else {
-  //   try {
-  //     const existingUser = await Users.findOne({email: data.email});
-  //     if (existingUser) {
-  //       errors.email = "Email exists already.";
-  //     }
-  //   } catch (error) {}
-  // }
-
+  
   try {
     const newUser = new Users({
-      name: data.name,
-      surname: data.surname,
       email: data.email,
       password: hashedPw,
       country: data.country,
+      project: data.project,
       admin: data.admin,
     });
     const savedUser = await newUser.save();
@@ -42,13 +30,12 @@ router.post("/signup", async (req, res, next) => {
 
 router.post("/login", async (req, res) => {
   const email = req.body.email;
-  //const password = req.body.password;
-  //const { users } = JSON.parse(process.env.USERS_JSON);
+  const password = req.body.password;
 
   let user;
   try {
-    user = await Users.findOne({email});
-    //user = await users.find((u) => u.email === email);
+    user = await Users.findOne({ email });
+    console.log(user);
   } catch (error) {
     return res.status(401).json({ message: "Authentication failed." });
   }
@@ -62,20 +49,12 @@ router.post("/login", async (req, res) => {
   }
 
   const token = createJSONToken(email);
-  const { admin, country, project } = user;
-  res.json({ token, admin, country, project });
+  const { admin, country, project, _id } = user;
+  const userData = { token, admin, country, id: _id };
+  res.json({ token, admin, country, id: _id, userData });
 });
 
-router.get("/user", async (req, res, next) => {
-  const email = req.body.email;
-
-  try {
-    const userData = await Users.findOne({email});
-    res.json({ user: userData });
-  } catch (error) {
-    next(error);
-  }
-});
+router.use(checkAuth);
 
 router.get("/users", async (req, res, next) => {
   try {
@@ -86,10 +65,10 @@ router.get("/users", async (req, res, next) => {
   }
 });
 
-router.use(checkAuth);
-
-router.patch("/:id", async (req, res, next) => {
-  const data = req.body;
+router.patch("/update", async (req, res, next) => {
+  const id = req.body.userId;
+  const password = req.body.password;
+  const hashedPw = await hash(password, 12);
 
   let errors = {};
 
@@ -101,8 +80,11 @@ router.patch("/:id", async (req, res, next) => {
   }
 
   try {
-    await Users.updateOne({ _id: req.params.id }, data);
-    res.json({ message: "User updated.", user: data });
+    await Users.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { password: hashedPw } }
+    );
+    res.json({ message: "Password updated!", user: { id, password } });
   } catch (error) {
     next(error);
   }

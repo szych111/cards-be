@@ -1,17 +1,9 @@
 const express = require("express");
-const {
-  Cards,
-  CardsDE,
-  CardsFR,
-  CardsIT,
-  CardsUK,
-} = require("../models/schemas");
+const { CardsDE, CardsFR, CardsIT, CardsUK } = require("../models/schemas");
 const { checkAuth } = require("../util/auth");
-const { fbAuthUser } = require("../util/fb-auth");
 
 const router = express.Router();
 
-// Define the lookup table for country-specific card models ONCE
 const countryCardModels = {
   DE: CardsDE,
   FR: CardsFR,
@@ -19,8 +11,9 @@ const countryCardModels = {
   UK: CardsUK,
 };
 
-// GET all cards for a specific country
-router.get("/:country", fbAuthUser, async (req, res, next) => {
+router.use(checkAuth);
+
+router.get("/:country", async (req, res, next) => {
   const country = req.params.country;
   const sorting = {
     eventDate: -1,
@@ -28,35 +21,39 @@ router.get("/:country", fbAuthUser, async (req, res, next) => {
   };
 
   try {
-    // Get the appropriate model based on the country
     const cardModel = countryCardModels[country];
 
     if (!cardModel) {
       throw new Error(`Unsupported country: ${country}`);
     }
 
-    // Fetch and sort the data
     const cardsData = await cardModel.find({}).sort(sorting);
 
-    // Send the response
     res.json({ cards: cardsData, message: "You are authorized!" });
   } catch (error) {
     next(error);
   }
 });
 
-// GET a specific card by ID
-router.get("/:id", fbAuthUser, async (req, res, next) => {
+router.get("/:country/:id", async (req, res, next) => {
+  const country = req.params.country;
+
   try {
-    const card = await Cards.findById(req.params.id).exec();
+    const CardModel = countryCardModels[country];
+
+    if (!CardModel) {
+      throw new Error(`Unsupported country: ${country}`);
+    }
+
+    const card = await CardModel.findById(req.params.id).exec();
+
     res.json({ card: card });
   } catch (error) {
     next(error);
   }
 });
 
-// POST a new card for a specific country
-router.post("/:country", fbAuthUser, async (req, res, next) => {
+router.post("/:country", async (req, res, next) => {
   const country = req.params.country;
   const data = req.body;
   const newCard = {
@@ -85,20 +82,16 @@ router.post("/:country", fbAuthUser, async (req, res, next) => {
   };
 
   try {
-    // Get the appropriate model based on the country
     const CardModel = countryCardModels[country];
 
     if (!CardModel) {
       throw new Error(`Unsupported country: ${country}`);
     }
 
-    // Create a new card instance for the specified country
     const collectionCard = new CardModel(newCard);
 
-    // Save the card to the database
     const savedCard = await collectionCard.save();
 
-    // Send the response
     res.status(201).json({
       message: `Card saved to collection ${country}`,
       card: savedCard,
@@ -110,8 +103,7 @@ router.post("/:country", fbAuthUser, async (req, res, next) => {
   }
 });
 
-// PATCH (update) a card for a specific country
-router.patch("/:country/:id", fbAuthUser, async (req, res, next) => {
+router.patch("/:country/:id", async (req, res, next) => {
   const cardData = req.body;
   const country = req.params.country;
 
@@ -125,14 +117,12 @@ router.patch("/:country/:id", fbAuthUser, async (req, res, next) => {
   }
 
   try {
-    // Get the appropriate model based on the country
     const CardModel = countryCardModels[country];
 
     if (!CardModel) {
       throw new Error(`Unsupported country: ${country}`);
     }
 
-    // Update the card
     await CardModel.updateOne({ _id: req.params.id }, cardData);
 
     res.json({
@@ -144,19 +134,16 @@ router.patch("/:country/:id", fbAuthUser, async (req, res, next) => {
   }
 });
 
-// DELETE a card for a specific country
-router.delete("/:country/:id", fbAuthUser, async (req, res, next) => {
+router.delete("/:country/:id", async (req, res, next) => {
   const country = req.params.country;
 
   try {
-    // Get the appropriate model based on the country
     const CardModel = countryCardModels[country];
 
     if (!CardModel) {
       throw new Error(`Unsupported country: ${country}`);
     }
 
-    // Delete the card
     await CardModel.deleteOne({ _id: req.params.id });
 
     res.json({ message: `Card deleted in collection ${country}` });

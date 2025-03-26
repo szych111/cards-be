@@ -117,19 +117,18 @@ cardSchema.methods.close = function () {
   this.pending = false;
 };
 
-// const supportedCountries = ["DE", "FR", "IT", "UK"];
-// const cardsModels = supportedCountries.reduce((models, country) => {
-//   models[`Cards${country}`] = mongoose.model(`Cards${country}`, cardSchema, `cards_${country.toLowerCase()}`);
-//   return models;
-// }, {});
+const supportedCountries = ["DE", "FR", "IT", "UK"];
+const cardsModels = supportedCountries.reduce((models, country) => {
+  models[`Cards${country}`] = mongoose.model(
+    `Cards${country}`,
+    cardSchema,
+    `cards_${country.toLowerCase()}`
+  );
+  return models;
+}, {});
 
-const Cards = mongoose.model("Cards", cardSchema, "cards");
-const CardsDE = mongoose.model("Cards", cardSchema, "cards_de");
-const CardsFR = mongoose.model("Cards", cardSchema, "cards_fr");
-const CardsIT = mongoose.model("Cards", cardSchema, "cards_it");
-const CardsUK = mongoose.model("Cards", cardSchema, "cards_uk");
 const Users = mongoose.model("Users", userSchema, "users");
 
-const cardsModels = { Cards, CardsDE, CardsFR, CardsIT, CardsUK, Users };
+const models = { ...cardsModels, Users };
 
-module.exports = cardsModels;
+module.exports = models;
