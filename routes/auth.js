@@ -23,7 +23,12 @@ router.post("/signup", async (req, res, next) => {
       active: data.active,
     });
     const savedUser = await newUser.save();
-    res.status(201).json({ message: "User saved with e-mail: " + data.email, user: savedUser });
+    res
+      .status(201)
+      .json({
+        message: "User saved with e-mail: " + data.email,
+        user: savedUser,
+      });
   } catch (error) {
     next(error);
   }
@@ -36,7 +41,12 @@ router.post("/login", async (req, res) => {
   let user;
   try {
     user = await Users.findOne({ email });
-    console.log(user);
+    if (!user) {
+      return res.status(422).json({
+        message: "User not found for email: " + email,
+        errors: { credentials: "Invalid email entered." },
+      });
+    }
   } catch (error) {
     return res.status(401).json({ message: "Authentication failed." });
   }
