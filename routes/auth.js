@@ -9,31 +9,6 @@ require("dotenv/config");
 
 const router = express.Router();
 
-router.post("/signup", async (req, res, next) => {
-  const data = req.body;
-  const hashedPw = await hash(data.password, 12);
-
-  try {
-    const newUser = new Users({
-      email: data.email,
-      password: hashedPw,
-      country: data.country,
-      //project: data.project,
-      admin: data.admin,
-      active: data.active,
-    });
-    const savedUser = await newUser.save();
-    res
-      .status(201)
-      .json({
-        message: "User saved with e-mail: " + data.email,
-        user: savedUser,
-      });
-  } catch (error) {
-    next(error);
-  }
-});
-
 router.post("/login", async (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
@@ -66,6 +41,29 @@ router.post("/login", async (req, res) => {
 });
 
 router.use(checkAuth);
+
+router.post("/signup", async (req, res, next) => {
+  const data = req.body;
+  const hashedPw = await hash(data.password, 12);
+
+  try {
+    const newUser = new Users({
+      email: data.email,
+      password: hashedPw,
+      country: data.country,
+      //project: data.project,
+      admin: data.admin,
+      active: data.active,
+    });
+    const savedUser = await newUser.save();
+    res.status(201).json({
+      message: "User saved with e-mail: " + data.email,
+      user: savedUser,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 router.get("/users", async (req, res, next) => {
   try {
