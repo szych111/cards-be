@@ -25,16 +25,50 @@ const passwordValidator = function (password) {
   return true;
 };
 
-const userSchema = new Schema({
-  email: {
-    type: String,
-    lowercase: true,
-    unique: true,
-    validate: {
-      validator: emailValidator,
-      message: (props) => `${props.value} is not a valid email!`,
+const emailValidation = {
+  type: String,
+  lowercase: true,
+  unique: true,
+  validate: {
+    validator: emailValidator,
+    message: (props) => `${props.value} is not a valid email!`,
+  },
+};
+
+const countryValidation = {
+  type: String,
+  validate: {
+    validator: function (value) {
+      return /^[A-Za-z]{2}$/.test(value);
     },
   },
+};
+
+const namesValidator = function (value) {
+  if (this.colour !== "green" && !value) {
+    return false;
+  }
+  return true;
+};
+
+const contractor = {
+  contractor: String,
+  contractorPerson: String,
+  contractorPhone: String,
+  contractorEmail: { ...emailValidation, unique: false },
+};
+
+const package = {
+  package: String,
+  packageManager: String,
+  packagePhone: String,
+  packageEmail: { ...emailValidation, unique: false },
+  project: String,
+  country: countryValidation,
+};
+
+const userSchema = new Schema({
+  email: emailValidation,
   password: {
     type: String,
     validate: {
@@ -43,47 +77,32 @@ const userSchema = new Schema({
         `Password must contain at least 8 characters, 1 number, 1 special character, and 1 uppercase letter.`,
     },
   },
-  country: {
-    type: String,
-    validate: {
-      validator: function (value) {
-        return /^[A-Za-z]{2}$/.test(value);
-      },
-    },
-  },
+  country: countryValidation,
   admin: Boolean,
   active: Boolean,
 });
 
+const settingsSchema = new Schema({
+  contractors: [contractor],
+  packages: [package],
+});
+
 const cardSchema = new Schema({
-  project: String,
-  contractor: { type: String, required: [true, "Contractor's name required"] },
-  contractorPerson: String,
-  contractorPhone: String,
-  contractorEmail: {
-    type: String,
-    lowercase: true,
-    validate: {
-      validator: emailValidator,
-      message: (props) => `${props.value} is not a valid email!`,
-    },
-  },
   workerName: {
     type: String,
-    required: [true, "Worker's first name required"],
-    minLength: 2,
+    validate: {
+      validator: namesValidator,
+      message: "Worker's name required",
+    },
   },
   workerSurname: {
     type: String,
-    required: [true, "Worker's last name required"],
-    minLength: 2,
+    validate: {
+      validator: namesValidator,
+      message: "Worker's surname required",
+    },
   },
   workerId: String,
-  package: String,
-  packageNumber: String,
-  packageManager: String,
-  packagePhone: String,
-  packageEmail: { type: String, lowercase: true },
   deviations: [
     {
       name: String,
@@ -101,20 +120,9 @@ const cardSchema = new Schema({
   pending: { type: Boolean, default: true },
   issuer: String,
   notes: String,
-  country: {
-    type: String,
-    validate: {
-      validator: function (value) {
-        return /^[A-Za-z]{2}$/.test(value);
-      },
-    },
-  },
-  project: String,
+  ...contractor,
+  ...package,
 });
-
-cardSchema.methods.close = function () {
-  this.pending = false;
-};
 
 const supportedCountries = ["DE", "FR", "IT", "UK"];
 const cardsModels = supportedCountries.reduce((models, country) => {
