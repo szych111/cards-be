@@ -1,5 +1,5 @@
 const express = require("express");
-const { CardsDE, CardsFR, CardsIT, CardsUK } = require("../models/schemas");
+const { CardsDE, CardsFR } = require("../models/schemas");
 const { checkAuth } = require("../util/auth");
 
 const router = express.Router();
@@ -7,8 +7,6 @@ const router = express.Router();
 const countryCardModels = {
   DE: CardsDE,
   FR: CardsFR,
-  IT: CardsIT,
-  UK: CardsUK,
 };
 
 router.use(checkAuth);
@@ -30,24 +28,6 @@ router.get("/:country", async (req, res, next) => {
     const cardsData = await cardModel.find({}).sort(sorting);
 
     res.json({ cards: cardsData, message: "You are authorized!" });
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.get("/:country/:id", async (req, res, next) => {
-  const country = req.params.country;
-
-  try {
-    const CardModel = countryCardModels[country];
-
-    if (!CardModel) {
-      throw new Error(`Unsupported country: ${country}`);
-    }
-
-    const card = await CardModel.findById(req.params.id).exec();
-
-    res.json({ card: card });
   } catch (error) {
     next(error);
   }

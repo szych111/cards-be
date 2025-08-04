@@ -51,6 +51,28 @@ const namesValidator = function (value) {
   return true;
 };
 
+const user = {
+  email: emailValidation,
+  password: {
+    type: String,
+    validate: {
+      validator: passwordValidator,
+      message: (props) =>
+        `Password must contain at least 8 characters, 1 number, 1 special character, and 1 uppercase letter.`,
+    },
+  },
+  country: countryValidation,
+  admin: String,
+  active: Boolean,
+  dateActive: {
+    type: Date,
+    default: Date.now,
+  },
+  dateInactive: Date,
+};
+
+const userSchema = new Schema(user);
+
 const contractor = {
   contractor: String,
   contractorPerson: String,
@@ -67,24 +89,22 @@ const package = {
   country: countryValidation,
 };
 
-const userSchema = new Schema({
-  email: emailValidation,
-  password: {
-    type: String,
-    validate: {
-      validator: passwordValidator,
-      message: (props) =>
-        `Password must contain at least 8 characters, 1 number, 1 special character, and 1 uppercase letter.`,
-    },
-  },
+const project = {
+  project: String,
   country: countryValidation,
-  admin: Boolean,
   active: Boolean,
-});
+  dateActive: {
+    type: Date,
+    default: Date.now,
+  },
+  dateInactive: Date,
+};
 
 const settingsSchema = new Schema({
   contractors: [contractor],
   packages: [package],
+  users: [user],
+  projects: [project],
 });
 
 const cardSchema = new Schema({
@@ -124,7 +144,8 @@ const cardSchema = new Schema({
   ...package,
 });
 
-const supportedCountries = ["DE", "FR", "IT", "UK"];
+const supportedCountries = ["DE", "FR"];
+
 const cardsModels = supportedCountries.reduce((models, country) => {
   models[`Cards${country}`] = mongoose.model(
     `Cards${country}`,
@@ -134,8 +155,17 @@ const cardsModels = supportedCountries.reduce((models, country) => {
   return models;
 }, {});
 
+const settingsModels = supportedCountries.reduce((models, country) => {
+  models[`Settings${country}`] = mongoose.model(
+    `Settings${country}`,
+    settingsSchema,
+    `settings_${country.toLowerCase()}`
+  );
+  return models;
+}, {});
+
 const Users = mongoose.model("Users", userSchema, "users");
 
-const models = { ...cardsModels, Users };
+const models = { ...cardsModels, ...settingsModels, Users };
 
 module.exports = models;

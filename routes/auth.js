@@ -1,8 +1,7 @@
 const express = require("express");
 const { hash } = require("bcryptjs");
-const { ObjectId } = require("mongoose").Types;
 const { createJSONToken, isValidPassword } = require("../util/auth");
-//const { isValidEmail, isValidText } = require("../util/validation");
+const { ObjectId } = require("mongoose").Types;
 const { Users } = require("../models/schemas");
 const { checkAuth } = require("../util/auth");
 require("dotenv/config");
@@ -18,8 +17,12 @@ router.post("/login", async (req, res) => {
     user = await Users.findOne({ email });
     if (!user) {
       return res.status(422).json({
-        message: "User not found for email: " + email,
-        errors: { credentials: "Invalid email entered." },
+        message: "User not found for email: " + email + ".",
+      });
+    }
+    if (user.active === false) {
+      return res.status(403).json({
+        message: "User account for: " + email + " is inactive",
       });
     }
   } catch (error) {
@@ -29,15 +32,14 @@ router.post("/login", async (req, res) => {
   const pwIsValid = await isValidPassword(password, user.password);
   if (!pwIsValid) {
     return res.status(422).json({
-      message: "Invalid credentials.",
-      errors: { credentials: "Invalid email or password entered." },
+      message: "Invalid email or password entered.",
     });
   }
 
   const token = createJSONToken(email);
-  const { admin, country, project, _id } = user;
+  const { admin, country, _id } = user;
   const userData = { token, admin, country, id: _id };
-  res.json({ userData });
+  res.json({ userData, user });
 });
 
 router.use(checkAuth);
@@ -51,9 +53,8 @@ router.post("/signup", async (req, res, next) => {
       email: data.email,
       password: hashedPw,
       country: data.country,
-      //project: data.project,
-      admin: data.admin,
-      active: data.active,
+      admin: "user",
+      active: true,
     });
     const savedUser = await newUser.save();
     res.status(201).json({
@@ -67,26 +68,17 @@ router.post("/signup", async (req, res, next) => {
 
 router.get("/users", async (req, res, next) => {
   try {
-    const usersData = await Users.find({});
-    res.json({ users: usersData });
+    const users = await Users.find({});
+    res.json(users);
   } catch (error) {
     next(error);
   }
 });
 
-router.patch("/update", async (req, res, next) => {
+router.patch("/updatePw", async (req, res, next) => {
   const id = req.body.userId;
   const password = req.body.password;
   const hashedPw = await hash(password, 12);
-
-  let errors = {};
-
-  if (Object.keys(errors).length > 0) {
-    return res.status(422).json({
-      message: "Updating the user failed due to validation errors",
-      errors,
-    });
-  }
 
   try {
     await Users.updateOne(
@@ -94,6 +86,29 @@ router.patch("/update", async (req, res, next) => {
       { $set: { password: hashedPw } }
     );
     res.json({ message: "Password updated!", user: { id, password } });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch("/updateUser", async (req, res, next) => {
+  const id = req.body.id;
+  const email = req.body.email;
+  const country = req.body.country;
+  const active = req.body.active;
+  const admin = req.body.admin;
+  const userData = req.body;
+
+  try {
+    await Users.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { email, country, active, admin } }
+    );
+
+    res.json({
+      message: "User updated!",
+      user: { id, email, country, active, admin },
+    });
   } catch (error) {
     next(error);
   }
