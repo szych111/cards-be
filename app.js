@@ -1,11 +1,12 @@
-require("dotenv/config");
 const bodyParser = require("body-parser");
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+require("dotenv/config");
 
 const cardRoutes = require("./routes/cards");
 const authRoutes = require("./routes/auth");
+const settingsRoutes = require("./routes/settings");
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use((req, res, next) => {
 
 app.use(cors(corsOptions));
 app.use("/auth", authRoutes);
+app.use("/settings", settingsRoutes);
 app.use("/", cardRoutes);
 
 app.use((error, req, res, next) => {
@@ -36,7 +38,7 @@ app.use((error, req, res, next) => {
 
 mongoose
   .connect(
-    `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@yellowredcard.9adjf.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority&appName=YellowRedCard`
+    `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@yellowredcard.9adjf.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority&appName=YellowredCard`
   )
   .then(() => console.log("DB Connected"))
   .catch((err) => console.log(err));
