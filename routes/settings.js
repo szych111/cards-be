@@ -1,5 +1,5 @@
 const express = require("express");
-const { SettingsDE, SettingsFR, Users } = require("../models/schemas");
+const { SettingsDE, SettingsFR } = require("../models/schemas");
 const { checkAuth } = require("../util/auth");
 
 const router = express.Router();

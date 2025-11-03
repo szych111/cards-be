@@ -62,6 +62,7 @@ const user = {
     },
   },
   country: countryValidation,
+  project: String,
   admin: String,
   active: Boolean,
   dateActive: {

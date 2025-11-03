@@ -13,6 +13,7 @@ router.use(checkAuth);
 
 router.get("/:country", async (req, res, next) => {
   const country = req.params.country;
+  // const { page = 1, limit = 50 } = req.query;
   const sorting = {
     eventDate: -1,
     workerSurname: 1,
@@ -26,8 +27,21 @@ router.get("/:country", async (req, res, next) => {
     }
 
     const cardsData = await cardModel.find({}).sort(sorting);
+    //   .skip((page - 1) * limit)
+    //   .limit(limit);
 
-    res.json({ cards: cardsData, message: "You are authorized!" });
+    // const totalRecords = await cardModel.countDocuments({});
+
+    res.json({
+      cards: cardsData,
+      message: `Cards fetched from collection ${country}`,
+      // pagination: {
+      //   page: Number(page),
+      //   limit: Number(limit),
+      //   totalRecords,
+      //   totalPages: Math.ceil(totalRecords / limit),
+      // },
+    });
   } catch (error) {
     next(error);
   }
@@ -84,17 +98,9 @@ router.post("/:country", async (req, res, next) => {
 });
 
 router.patch("/:country/:id", async (req, res, next) => {
-  const cardData = req.body;
   const country = req.params.country;
-
-  let errors = {};
-
-  if (Object.keys(errors).length > 0) {
-    return res.status(422).json({
-      message: "Updating the card failed due to validation errors.",
-      errors,
-    });
-  }
+  const cardId = req.params.id;
+  const cardData = req.body;
 
   try {
     const CardModel = countryCardModels[country];
@@ -103,7 +109,7 @@ router.patch("/:country/:id", async (req, res, next) => {
       throw new Error(`Unsupported country: ${country}`);
     }
 
-    await CardModel.updateOne({ _id: req.params.id }, cardData);
+    await CardModel.updateOne({ _id: cardId }, cardData);
 
     res.json({
       message: `Card updated in collection ${country}`,

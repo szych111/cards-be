@@ -37,8 +37,8 @@ router.post("/login", async (req, res) => {
   }
 
   const token = createJSONToken(email);
-  const { admin, country, _id } = user;
-  const userData = { token, admin, country, id: _id };
+  const { admin, country, project, _id } = user;
+  const userData = { token, admin, country, project, id: _id };
   res.json({ userData, user });
 });
 
@@ -53,6 +53,7 @@ router.post("/signup", async (req, res, next) => {
       email: data.email,
       password: hashedPw,
       country: data.country,
+      project: data.project,
       admin: "user",
       active: true,
     });
@@ -95,6 +96,7 @@ router.patch("/updateUser", async (req, res, next) => {
   const id = req.body.id;
   const email = req.body.email;
   const country = req.body.country;
+  const project = req.body.project;
   const active = req.body.active;
   const admin = req.body.admin;
   const userData = req.body;
@@ -102,12 +104,12 @@ router.patch("/updateUser", async (req, res, next) => {
   try {
     await Users.updateOne(
       { _id: new ObjectId(id) },
-      { $set: { email, country, active, admin } }
+      { $set: { email, country, project, active, admin } }
     );
 
     res.json({
       message: "User updated!",
-      user: { id, email, country, active, admin },
+      user: { id, email, country, project, active, admin },
     });
   } catch (error) {
     next(error);

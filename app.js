@@ -7,6 +7,7 @@ require("dotenv/config");
 const cardRoutes = require("./routes/cards");
 const authRoutes = require("./routes/auth");
 const settingsRoutes = require("./routes/settings");
+const whRoutes = require("./routes/wh");
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use((req, res, next) => {
 app.use(cors(corsOptions));
 app.use("/auth", authRoutes);
 app.use("/settings", settingsRoutes);
+app.use("/wh", whRoutes);
 app.use("/", cardRoutes);
 
 app.use((error, req, res, next) => {
