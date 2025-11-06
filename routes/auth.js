@@ -37,8 +37,8 @@ router.post("/login", async (req, res) => {
   }
 
   const token = createJSONToken(email);
-  const { admin, country, project, _id } = user;
-  const userData = { token, admin, country, project, id: _id };
+  const { admin, country, name, project, _id } = user;
+  const userData = { token, admin, country, name, project, id: _id };
   res.json({ userData, user });
 });
 

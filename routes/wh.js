@@ -21,7 +21,7 @@ router.get("/:country", async (req, res, next) => {
       throw new Error(`Unsupported country: ${country}`);
     }
 
-    const whData = await whModel.find({}).sort({ week: -1 });
+    const whData = await whModel.find({}).sort({ from: -1 });
 
     res.json({ whs: whData });
   } catch (error) {
