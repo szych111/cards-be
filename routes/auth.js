@@ -15,6 +15,7 @@ router.post("/login", async (req, res) => {
   let user;
   try {
     user = await Users.findOne({ email });
+    console.log(user);
     if (!user) {
       return res.status(422).json({
         message: "User not found for email: " + email + ".",
@@ -35,11 +36,11 @@ router.post("/login", async (req, res) => {
       message: "Invalid email or password entered.",
     });
   }
-
+  const userPlain = user.toObject ? user.toObject() : user;
   const token = createJSONToken(email);
-  const { admin, country, name, project, _id } = user;
+  const { admin, country, project, name, _id } = userPlain;
   const userData = { token, admin, country, name, project, id: _id };
-  res.json({ userData, user });
+  res.json(userData);
 });
 
 router.use(checkAuth);
