@@ -52,6 +52,7 @@ const namesValidator = function (value) {
 };
 
 const user = {
+  name: String,
   email: emailValidation,
   password: {
     type: String,
@@ -69,7 +70,10 @@ const user = {
     type: Date,
     default: Date.now,
   },
-  dateInactive: Date,
+  dateInactive: {
+    type: Date,
+    required: false,
+  },
 };
 
 const userSchema = new Schema(user);
@@ -90,15 +94,22 @@ const package = {
   country: countryValidation,
 };
 
+const projectSafetyCoefs = {
+  whsr: { type: Number, default: 50 },
+  trir: { type: Number, default: 200000 },
+  ltifr: { type: Number, default: 1000000 },
+  kpis: { type: Map, of: Number, required: false },
+};
+
 const project = {
   project: String,
   country: countryValidation,
-  active: Boolean,
+  dateInactive: { type: Date, required: false },
   dateActive: {
     type: Date,
     default: Date.now,
   },
-  dateInactive: Date,
+  safetyCoefs: projectSafetyCoefs,
 };
 
 const settingsSchema = new Schema({
